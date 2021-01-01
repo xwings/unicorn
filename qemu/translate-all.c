@@ -63,6 +63,10 @@
 
 #include "uc_priv.h"
 
+static bool tb_exec_is_locked(TCGContext*);
+static void tb_exec_change(TCGContext*, bool locked);
+
+
 //#define DEBUG_TB_INVALIDATE
 //#define DEBUG_FLUSH
 /* make various TB consistency checks */
@@ -631,6 +635,11 @@ static inline void *alloc_code_gen_buffer(struct uc_struct *uc)
     int flags = MAP_PRIVATE | MAP_ANONYMOUS;
     uintptr_t start = 0;
     void *buf;
+
+#ifdef USE_MAP_JIT
+    flags |= MAP_JIT;
+#endif
+
     TCGContext *tcg_ctx = uc->tcg_ctx;
 
     /* Constrain the position of the buffer based on the host cpu.
@@ -775,6 +784,7 @@ void tcg_exec_init(struct uc_struct *uc, unsigned long tb_size)
 
     cpu_gen_init(uc);
     code_gen_alloc(uc, tb_size);
+    tb_exec_unlock(uc->tcg_ctx);
     tcg_ctx = uc->tcg_ctx;
     tcg_ctx->code_gen_ptr = tcg_ctx->code_gen_buffer;
     tcg_ctx->uc = uc;
@@ -1019,7 +1029,11 @@ void tb_phys_invalidate(struct uc_struct *uc,
     PageDesc *p;
     unsigned int h, n1;
     tb_page_addr_t phys_pc;
+    bool code_gen_locked;
     TranslationBlock *tb1, *tb2;
+
+    code_gen_locked = tb_exec_is_locked(tcg_ctx);
+    tb_exec_unlock(tcg_ctx);
 
     /* remove the TB from the hash list */
     phys_pc = tb->page_addr[0] + (tb->pc & ~TARGET_PAGE_MASK);
@@ -1066,6 +1080,8 @@ void tb_phys_invalidate(struct uc_struct *uc,
     tb->jmp_first = (TranslationBlock *)((uintptr_t)tb | 2); /* fail safe */
 
     tcg_ctx->tb_ctx.tb_phys_invalidate_count++;
+
+    tb_exec_change(tcg_ctx, code_gen_locked);
 }
 
 static inline void set_bits(uint8_t *tab, int start, int len)
@@ -2011,3 +2027,35 @@ static int page_unprotect(target_ulong address, uintptr_t pc, void *puc)
     return 0;
 }
 #endif /* CONFIG_USER_ONLY */
+
+#ifdef HAVE_PTHREAD_JIT_PROTECT
+static bool tb_exec_is_locked(TCGContext *tcg_ctx)
+{
+    return tcg_ctx->code_gen_locked;
+}
+
+static void tb_exec_change(TCGContext *tcg_ctx, bool locked)
+{
+    jit_write_protect(locked);
+    tcg_ctx->code_gen_locked = locked;
+}
+#else /* not needed on non-Darwin platforms */
+static bool tb_exec_is_locked(TCGContext *tcg_ctx)
+{
+    return false;
+}
+
+static void tb_exec_change(TCGContext *tcg_ctx, bool locked) {}
+#endif
+
+void tb_exec_lock(TCGContext *tcg_ctx)
+{
+    /* assumes sys_icache_invalidate already called */
+    tb_exec_change(tcg_ctx, true);
+}
+
+void tb_exec_unlock(TCGContext *tcg_ctx)
+{
+    tb_exec_change(tcg_ctx, false);
+}
+

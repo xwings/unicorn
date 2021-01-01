@@ -17,6 +17,21 @@
 #define WEXITSTATUS(x) (x)
 #endif
 
+/*
+ * Only allow MAP_JIT for Mojave or later.
+ * 
+ * Source: https://github.com/moby/hyperkit/pull/259/files#diff-e6b5417230ff2daff9155d9b15aefae12e89410ec2dca1f59d04be511f6737fcR41
+ */
+#if defined(__APPLE__) && !defined(HAVE_PTHREAD_JIT_PROTECT)
+#include <Availability.h>
+#ifdef __MAC_OS_X_VERSION_MIN_REQUIRED
+    #if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101400 && defined(MAP_JIT)
+        #define USE_MAP_JIT
+    #endif
+#endif
+#endif
+
+
 #if defined(CONFIG_SOLARIS) && CONFIG_SOLARIS_VERSION < 10
 /* [u]int_fast*_t not in <sys/int_types.h> */
 typedef unsigned char           uint_fast8_t;

@@ -101,7 +101,15 @@ typedef enum {
 
 static inline void flush_icache_range(uintptr_t start, uintptr_t stop)
 {
+#if defined(__APPLE__)
+    /* 
+     * On Intel-based Mac computers, this function does nothing.
+     * Source: https://developer.apple.com/documentation/apple_silicon/porting_just-in-time_compilers_to_apple_silicon?language=objc
+     */
+    sys_icache_invalidate((char *)start, stop - start);
+#else
     __builtin___clear_cache((char *)start, (char *)stop);
+#endif    
 }
 
 #endif /* TCG_TARGET_AARCH64 */

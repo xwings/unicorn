@@ -32,6 +32,9 @@ static void cpu_handle_debug_exception(CPUArchState *env);
 
 void cpu_loop_exit(CPUState *cpu)
 {
+    /* Unlock JIT write protect if applicable. */
+    tb_exec_unlock(cpu->uc->tcg_ctx);
+
     cpu->current_tb = NULL;
     siglongjmp(cpu->jmp_env, 1);
 }
@@ -313,7 +316,11 @@ static tcg_target_ulong cpu_tb_exec(CPUState *cpu, uint8_t *tb_ptr)
     TCGContext *tcg_ctx = env->uc->tcg_ctx;
     uintptr_t next_tb;
 
+    tb_exec_lock(cpu->uc->tcg_ctx);
+
     next_tb = tcg_qemu_tb_exec(env, tb_ptr);
+
+    tb_exec_unlock(cpu->uc->tcg_ctx);
 
     if ((next_tb & TB_EXIT_MASK) > TB_EXIT_IDX1) {
         /* We didn't start executing this TB (eg because the instruction

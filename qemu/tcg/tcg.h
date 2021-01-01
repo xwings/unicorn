@@ -649,6 +649,16 @@ struct TCGContext {
     size_t code_gen_buffer_max_size;
     void *code_gen_ptr;
 
+#ifdef HAVE_PTHREAD_JIT_PROTECT
+    /*
+     * True for X, False for W.
+     * 
+     * Source: https://developer.apple.com/documentation/apple_silicon/porting_just-in-time_compilers_to_apple_silicon?language=objc
+     */
+    bool code_gen_locked;
+#endif
+
+
     TBContext tb_ctx;
 
     /* The TCGBackendData structure is private to tcg-target.c.  */

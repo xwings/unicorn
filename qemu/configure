@@ -280,6 +280,22 @@ Darwin)
   if test -z "$cpu" && test "$(sysctl -n hw.optional.x86_64)" = "1"; then
     cpu="x86_64"
   fi
+
+##########################################
+# check for Apple Silicon JIT function
+
+if [ "$darwin" = "yes" ] ; then
+  cat > $TMPC << EOF
+#include <pthread.h>
+int main() { pthread_jit_write_protect_np(0); return 0; }
+EOF
+  if ! compile_prog ""; then
+    have_pthread_jit_protect='no'
+  else
+    have_pthread_jit_protect='yes'
+  fi
+fi
+
   ;;
 SunOS)
   # `uname -m` returns i86pc even on an x86_64 box, so default based on isainfo
@@ -1106,6 +1122,10 @@ if test "$mingw32" = "yes" ; then
   echo "CONFIG_PRODUCTVERSION=$version_major,$version_minor,$version_subminor,$version_micro" >> $config_host_mak
 else
   echo "CONFIG_POSIX=y" >> $config_host_mak
+fi
+
+if test "$have_pthread_jit_protect" = "yes" ; then
+  echo "HAVE_PTHREAD_JIT_PROTECT=y" >> $config_host_mak
 fi
 
 if test "$linux" = "yes" ; then

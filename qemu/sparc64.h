@@ -2652,6 +2652,8 @@
 #define tb_flush_jmp_cache tb_flush_jmp_cache_sparc64
 #define tb_free tb_free_sparc64
 #define tb_gen_code tb_gen_code_sparc64
+#define tb_exec_lock tb_exec_lock_sparc64
+#define tb_exec_unlock tb_exec_unlock_sparc64
 #define tb_hash_remove tb_hash_remove_sparc64
 #define tb_invalidate_phys_addr tb_invalidate_phys_addr_sparc64
 #define tb_invalidate_phys_page_range tb_invalidate_phys_page_range_sparc64

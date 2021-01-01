@@ -2652,6 +2652,8 @@
 #define tb_flush_jmp_cache tb_flush_jmp_cache_mips
 #define tb_free tb_free_mips
 #define tb_gen_code tb_gen_code_mips
+#define tb_exec_lock tb_exec_lock_mips
+#define tb_exec_unlock tb_exec_unlock_mips
 #define tb_hash_remove tb_hash_remove_mips
 #define tb_invalidate_phys_addr tb_invalidate_phys_addr_mips
 #define tb_invalidate_phys_page_range tb_invalidate_phys_page_range_mips

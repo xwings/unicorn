@@ -2652,6 +2652,8 @@
 #define tb_flush_jmp_cache tb_flush_jmp_cache_m68k
 #define tb_free tb_free_m68k
 #define tb_gen_code tb_gen_code_m68k
+#define tb_exec_lock tb_exec_lock_m68k
+#define tb_exec_unlock tb_exec_unlock_m68k
 #define tb_hash_remove tb_hash_remove_m68k
 #define tb_invalidate_phys_addr tb_invalidate_phys_addr_m68k
 #define tb_invalidate_phys_page_range tb_invalidate_phys_page_range_m68k
