@@ -850,7 +850,7 @@ set(UNICORN_SRCS_COMMON
     uc.c
 )
 
-if (MSVC)
+if (WIN32)
     set(UNICORN_SRCS
         ${UNICORN_SRCS_COMMON}
         qemu/util/oslib-win32.c
@@ -889,7 +889,7 @@ if (UNICORN_HAS_X86)
     set(UNICORN_SAMPLE_FILE ${UNICORN_SAMPLE_FILE} sample_x86 sample_x86_32_gdt_and_seg_regs sample_batch_reg mem_apis shellcode)
 endif()
 if (UNICORN_HAS_ARM)
-    set(UNICORN_COMPILE_OPTIONS ${UNICORN_COMPILE_OPTIONS} -DUNICORN_HAS_ARM)
+    set(UNICORN_COMPILE_OPTIONS ${UNICORN_COMPILE_OPTIONS} -DUNICORN_HAS_ARM -DUNICORN_HAS_ARMEB)
     set(UNICORN_LINK_LIBRARIES ${UNICORN_LINK_LIBRARIES} arm-softmmu armeb-softmmu)
     set(UNICORN_SAMPLE_FILE ${UNICORN_SAMPLE_FILE} sample_arm sample_armeb)
 endif()
@@ -918,7 +918,7 @@ target_compile_options(unicorn PRIVATE
     ${UNICORN_COMPILE_OPTIONS}
 )
 
-if(MSVC)
+if(WIN32)
     if (UNICORN_BUILD_SHARED)
         target_compile_options(unicorn PRIVATE
             -DUNICORN_SHARED
@@ -939,7 +939,7 @@ else()
     )
 endif()
 
-if(MSVC)
+if(WIN32)
     set(SAMPLES_LIB
         unicorn
     )
